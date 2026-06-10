@@ -121,9 +121,14 @@ and re-validates it before doing anything:
 
 ## Releases
 
-Tagging a commit `vX.Y.Z` triggers the GitHub Actions workflow in
-[`.github/workflows/release.yml`](.github/workflows/release.yml), which builds a
-versioned zip and publishes a release with auto-generated notes.
+Pushing a version tag runs the [release workflow](.github/workflows/release.yml),
+which builds a versioned zip and publishes a GitHub release with auto-generated
+notes:
+
+```bash
+git tag v2.1.0
+git push origin v2.1.0
+```
 
 ## License
 
