@@ -1,83 +1,130 @@
-# lf-grandma | Healing & Revive NPC
+# lf-grandma — Healing & Revive NPC
 
-Welcome to `lf-grandma`, a highly configurable FiveM script that adds an immersive NPC who provides healing and revival services to players for a fee. This script is designed to be a lightweight and feature-rich alternative for illegal or remote medical services on your server.
+![version](https://img.shields.io/github/v/release/luci53/lf-grandma?sort=semver)
+![license](https://img.shields.io/github/license/luci53/lf-grandma)
+![frameworks](https://img.shields.io/badge/framework-QBox%20%7C%20QBCore%20%7C%20ESX-blue)
 
-Grandma doesn't ask questions. For the right price, she'll patch you up or bring you back from the brink, complete with animations and server-side checks to ensure fair play.
+A lightweight, highly configurable FiveM NPC who heals and revives players for
+a fee. Grandma doesn't ask questions — for the right price she'll patch you up
+or bring you back, with animations, blips and server-validated fair play.
+
+> **Heads up:** v2 is a rewrite with a new config layout. If you're upgrading
+> from v1, see the [CHANGELOG](CHANGELOG.md) — `Config.HealCost` /
+> `Config.ReviveCost` are now `Config.Services`.
 
 ## Features
 
-* **Interactive NPC:** A persistent "Grandma" NPC at a location of your choice.
-* **Dynamic Menus:** The interaction menu intelligently shows "Heal" for living players and "Revive" for dead players.
-* **Multi-Framework Support:** Works out-of-the-box with `QBCore` and `ESX`.
-* **Multi-Target Support:** Supports `ox_target` and `qb-target` for interactions.
-* **Zone-Checked Revives:** Prevents players from reviving others who are not within a configurable radius of Grandma.
-* **Immersive Animations:** Grandma plays a configurable animation when healing or reviving someone, visible to all nearby players.
-* **Discord Logging:** Integrated Discord webhook to log all services performed by Grandma.
-* **Highly Configurable:** Easily change costs, coordinates, animations, notifications, and more via the `config.lua` file.
+- **Multi-framework** — QBox (`qbx_core`), QBCore and ESX, auto-detected.
+- **In-game Granny creator** — place, list and delete Grannies live with
+  `/grandma`. Admin-placed locations persist across restarts.
+- **Multiple locations & blips** — run as many Grannies as you like, each with
+  its own model, idle scenario and map blip.
+- **Heal that actually heals** — restores health and clears blood/visible
+  damage. Revive resurrects downed players (yourself or others nearby).
+- **Flexible pricing** — charge cash, items, or both per service, plus optional
+  hunger/thirst top-up on heal.
+- **Anti-exploit by design** — the server independently re-checks proximity,
+  death state and payment. The client is never trusted.
+- **Per-player cooldowns** and optional Discord logging (including rejected,
+  suspicious requests).
 
 ## Dependencies
 
-Before installing, ensure you have the following resources installed and started on your server:
+| Resource | Required | Notes |
+| --- | --- | --- |
+| [ox_lib](https://github.com/communityox/ox_lib) | ✅ | Menus, inputs, progress, notifications, callbacks |
+| A framework | ✅ | [qbx_core](https://github.com/Qbox-project/qbx_core) **or** [qb-core](https://github.com/qbcore-framework/qb-core) **or** [es_extended](https://github.com/esx-framework/esx_core) |
+| A targeting system | ✅ | [ox_target](https://github.com/communityox/ox_target) **or** [qb-target](https://github.com/qbcore-framework/qb-target) |
+| [ox_inventory](https://github.com/communityox/ox_inventory) | ⛔ optional | Only if you charge items and use ox_inventory |
 
-* **Framework:**
-    * [qb-core](https://github.com/qbcore-framework/qb-core) OR [es_extended](https://github.com/esx-framework/esx_core)
-* **Library:**
-    * [ox_lib](https://github.com/CommunityOx/ox_lib) (Required for notifications, progress bars, and menus)
-* **Targeting System:**
-    * [ox_target](https://github.com/CommunityOx/ox_target) OR [qb-target](https://github.com/qbcore-framework/qb-target)
-* **For QBCore Users:**
-    * [qb-menu](https://github.com/qbcore-framework/qb-menu)
-    * [qb-input](https://github.com/qbcore-framework/qb-input)
+> `qb-menu` and `qb-input` are **no longer required** — everything uses `ox_lib`.
 
 ## Installation
 
-1.  Download the `lf-grandma` script.
-2.  Extract the folder and place it in your server's `resources` directory.
-3.  Ensure all the dependencies listed above are installed correctly.
-4.  Open the `config.lua` file and adjust the settings to match your server's framework and your preferences.
-5.  Add `ensure lf-grandma` to your `server.cfg` or `resources.cfg` file. Make sure it is started *after* its dependencies.
-6.  Restart your server.
+1. Download/clone this resource into your server's `resources` folder.
+2. Make sure the dependencies above are installed and started **before** it.
+3. Edit `config.lua` to taste (see below).
+4. Add `ensure lf-grandma` to your `server.cfg` (after its dependencies).
+5. Restart your server.
 
 ## Configuration
 
-All settings are located in the `config.lua` file.
+Everything lives in [`config.lua`](config.lua) and is fully commented. Highlights:
 
 ```lua
--- File: config.lua
+Config.Framework = 'auto'   -- or 'qbx' | 'qb' | 'esx'
+Config.Target    = 'auto'   -- or 'ox' | 'qb'
 
-Config = {}
-
--- Framework and Target Settings
-Config.Framework = 'qb'  -- Framework: 'qb' or 'esx'
-Config.Target = 'ox'     -- Targeting System: 'ox' or 'qb'
-
--- Cost Settings
-Config.HealCost = 100    -- Cost to heal a player
-Config.ReviveCost = 150  -- Cost to revive a player or another player
-
--- General Settings
-Config.Debug = true      -- Enable debug prints in console. Set to false for production.
-Config.Coords = vector4(2432.6, 4968.10, 48.30, 136.91) -- Grandma's location (x, y, z, heading)
-Config.ReviveZoneRadius = 7.0 -- Max distance (in meters) a downed player can be from Grandma to be revived by others
-
--- UI Settings
-Config.Notify = 'ox' -- Notification system: 'ox' or 'qb'
-Config.ProgressType = 'ox' -- Progress bar system: 'ox' or 'qb'
-
--- Logging
-Config.Webhook = 'YOUR_URL_HERE' -- Your Discord webhook URL for logging
-
--- Animations
--- You can find more animations at [https://alexguirre.github.io/animations-list/](https://alexguirre.github.io/animations-list/)
-Config.Animations = {
-    heal = {
-        dict = 'amb@medic@standing@kneel@base',
-        anim = 'base',
-        duration = 5000 -- in milliseconds
-    },
-    revive = {
-        dict = 'missfinale_c2mcs_1',
-        anim = 'fin_c2_mcs_1_camman',
-        duration = 7000 -- in milliseconds
-    }
+Config.Services = {
+    heal = { enabled = true, cost = 100, items = {}, cooldown = 30, restoreNeeds = true },
+    revive = { enabled = true, cost = 150, items = {}, cooldown = 60 },
+    reviveOther = { enabled = true, cost = 150, items = {}, cooldown = 60 },
 }
+
+Config.InteractionDistance = 3.5   -- server-enforced range to use any service
+Config.ReviveZoneRadius    = 7.0   -- how close a downed player must be to be revived
+```
+
+### Charging items
+
+Add items to any service's `items` list — they're consumed only if the player
+can pay the **full** price (money + items):
+
+```lua
+heal = { cost = 50, items = { { name = 'bandage', amount = 1 } } },
+```
+
+### Locations & blips
+
+`Config.Locations` holds the **default** Grannies shipped with the script.
+Each entry takes a `label`, `model`, `coords = vector4(x, y, z, heading)`, an
+optional `scenario`, and an optional per-location `blip`. The global blip style
+is `Config.Blip`.
+
+## The Granny creator
+
+Admins can manage Grannies in-game — no config editing or restart needed.
+
+1. Stand where you want her.
+2. Run `/grandma` (command name configurable).
+3. **Create Grandma Here** → pick a label, model and idle scenario.
+
+Admin-created Grannies are saved to `locations.json` and sync to every player
+instantly. **List Locations** and **Delete Nearest** manage them. Default
+(config) locations are read-only here — edit `config.lua` to change those.
+
+**Who counts as admin?** Anyone with the `lf-grandma.admin` ace permission, or a
+framework group in `Config.Creator.adminGroups` (`admin`/`superadmin`/`god` by
+default). To grant the ace permission, add to your `server.cfg`:
+
+```cfg
+add_ace group.admin lf-grandma.admin allow
+```
+
+## How the anti-exploit works
+
+Network events can be spoofed, so the server treats every request as untrusted
+and re-validates it before doing anything:
+
+- **Proximity** — the server reads the player's position with its own
+  `GetEntityCoords` and confirms they're within `InteractionDistance` of a real
+  Granny. You can't heal from across the map.
+- **Death state** — the client publishes a *replicated* statebag flag; the
+  server reads it to confirm a player is genuinely down before reviving (and not
+  down before healing). For `reviveOther`, the target must be dead **and** in
+  the revive zone.
+- **Payment** — money and items are checked together and charged atomically; a
+  player who can't afford the full price pays nothing.
+- **Cooldowns** — per player, per service.
+- **Logging** — successful services and rejected/suspicious attempts can be sent
+  to a Discord webhook (`Config.Webhook`, `Config.LogSuspicious`).
+
+## Releases
+
+Tagging a commit `vX.Y.Z` triggers the GitHub Actions workflow in
+[`.github/workflows/release.yml`](.github/workflows/release.yml), which builds a
+versioned zip and publishes a release with auto-generated notes.
+
+## License
+
+[MIT](LICENSE) © Lucifer (luci53)

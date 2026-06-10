@@ -1,0 +1,43 @@
+name: Release
+
+# Tag a commit (e.g. `git tag v2.0.0 && git push --tags`) to cut a release.
+# This bundles the resource into a versioned zip and publishes a GitHub
+# Release with auto-generated notes from the commits since the last tag.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build resource archive
+        run: |
+          mkdir -p dist/lf-grandma
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='dist' \
+            --exclude='locations.json' \
+            --exclude='*.zip' \
+            ./ dist/lf-grandma/
+          cd dist && zip -r "lf-grandma-${{ steps.version.outputs.version }}.zip" lf-grandma
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: lf-grandma ${{ github.ref_name }}
+          generate_release_notes: true
+          files: dist/lf-grandma-${{ steps.version.outputs.version }}.zip

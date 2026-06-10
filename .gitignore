@@ -1,0 +1,13 @@
+# Runtime data created by the script (admin-placed Grannies)
+locations.json
+
+# Build output
+dist/
+*.zip
+
+# Editor / OS
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,19 +1,30 @@
 fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
-author 'Lucifer'
-description 'Illegal grandma script '
 
+name 'lf-grandma'
+author 'Lucifer'
+description 'Configurable healing & revive NPC ("Grandma") for QBox, QBCore and ESX'
+version '2.0.0'
+repository 'https://github.com/luci53/lf-grandma'
 
 shared_scripts {
-    'config.lua'  
+    '@ox_lib/init.lua',
+    'config.lua',
 }
 
 client_scripts {
-    '@ox_lib/init.lua',
-    'client.lua'
+    'client/main.lua',
+    'client/creator.lua',
 }
 
-server_script 'server.lua'
+server_scripts {
+    '@ox_lib/init.lua',
+    'server/bridge.lua',
+    'server/locations.lua',
+    'server/main.lua',
+}
 
-
+dependencies {
+    'ox_lib',
+}
